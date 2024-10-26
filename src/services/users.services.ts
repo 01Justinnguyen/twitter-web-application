@@ -1,3 +1,6 @@
+import User from '~/models/schemas/user.shema'
+import databaseService from '~/services/database.services'
+
 class UserServices {
   async login(info: any) {
     const { email, password } = info
@@ -8,6 +11,18 @@ class UserServices {
     }
     return {
       message: 'Login Success!!!'
+    }
+  }
+
+  async register(email: string, password: string) {
+    await databaseService.users.insertOne(
+      new User({
+        email,
+        password
+      })
+    )
+    return {
+      message: 'Register successfully'
     }
   }
 }

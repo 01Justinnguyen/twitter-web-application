@@ -2,6 +2,7 @@ import express from 'express'
 import cors from 'cors'
 import { config } from 'dotenv'
 import userRouter from '~/routes/users.routes'
+import databaseService from '~/services/database.services'
 
 config()
 const app = express()
@@ -17,7 +18,7 @@ app.use(
 )
 
 app.use('/users', userRouter)
-
+databaseService.connect()
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}`)
 })
