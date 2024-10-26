@@ -1,4 +1,4 @@
-import User from '~/models/schemas/user.shema'
+import User from '~/models/schemas/User.schema'
 import databaseService from '~/services/database.services'
 
 class UserServices {
@@ -24,6 +24,11 @@ class UserServices {
     return {
       message: 'Register successfully'
     }
+  }
+
+  async checkEmailAlreadyExist(email: string) {
+    const result = await databaseService.users.findOne({ email })
+    return Boolean(result)
   }
 }
 
