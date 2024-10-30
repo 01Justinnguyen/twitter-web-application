@@ -69,7 +69,7 @@ class UserServices {
     }
   }
 
-  async checkEmailAlreadyExist(email: string) {
+  async checkEmailAlreadyExists(email: string) {
     const result = await databaseService.users.findOne({ email })
     return Boolean(result)
   }
