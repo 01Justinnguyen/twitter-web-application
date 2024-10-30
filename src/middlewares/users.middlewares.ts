@@ -1,19 +1,47 @@
-import { NextFunction, Request, Response } from 'express'
 import { checkSchema } from 'express-validator'
 import ERROR_CODES_MESSAGE from '~/constants/messages'
 import userServices from '~/services/users.services'
 import { validate } from '~/utils/validation'
 
-export const loginValidator = (req: Request, res: Response, next: NextFunction) => {
-  const { email, password } = req.body
-  if (!email || !password) {
-    res.status(400).json({
-      error: ERROR_CODES_MESSAGE.MISSING_EMAIL_OR_PASSWORD
-    })
-    return
-  }
-  next()
-}
+export const loginValidator = validate(
+  checkSchema({
+    email: {
+      notEmpty: {
+        errorMessage: ERROR_CODES_MESSAGE.MISSING_EMAIL_ERROR
+      },
+      isEmail: {
+        errorMessage: ERROR_CODES_MESSAGE.INVALID_EMAIL_FORMAT
+      },
+      trim: true
+    },
+    password: {
+      notEmpty: {
+        errorMessage: ERROR_CODES_MESSAGE.MISSING_PASSWORD_ERROR
+      },
+      isString: {
+        errorMessage: ERROR_CODES_MESSAGE.PASSWORD_MUST_BE_STRING
+      },
+      isLength: {
+        options: {
+          min: 6,
+          max: 50
+        },
+        errorMessage: ERROR_CODES_MESSAGE.PASSWORD_LENGTH_ERROR
+      },
+      isStrongPassword: {
+        options: {
+          minLength: 6,
+          minLowercase: 1,
+          minNumbers: 1,
+          minSymbols: 1,
+          minUppercase: 1
+        },
+        errorMessage: ERROR_CODES_MESSAGE.PASSWORD_STRONG_ERROR
+      },
+      trim: true
+    }
+  })
+)
 
 export const registerValidator = validate(
   checkSchema(
