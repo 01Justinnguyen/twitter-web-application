@@ -1,9 +1,9 @@
 import { NextFunction, Request, Response } from 'express'
 import userServices from '~/services/users.services'
 import { ParamsDictionary } from 'express-serve-static-core'
-import { RegisterReqBody } from '~/models/requests/User.requests'
+import { LoginRequestBody, RegisterReqBody } from '~/models/requests/User.requests'
 
-export const loginController = async (req: Request, res: Response) => {
+export const loginController = async (req: Request<ParamsDictionary, any, LoginRequestBody>, res: Response) => {
   const result = await userServices.login(req.body)
   res.json(result)
 }

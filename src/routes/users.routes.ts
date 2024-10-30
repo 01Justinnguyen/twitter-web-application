@@ -1,13 +1,13 @@
 import { Router } from 'express'
 import { loginController, registerController } from '~/controllers/users.controllers'
 import { loginValidator, registerValidator } from '~/middlewares/users.middlewares'
-import { wrapRequestHandler, wrapRequestHandler2 } from '~/utils/handlers'
+import { wrapRequestHandler2 } from '~/utils/handlers'
 
 const userRouter = Router()
 
 // Khi xảy ra lỗi trong async handler thì phải gọi `next(err)` để chuyển sang error handler
 
-userRouter.post('/login', loginValidator, loginController)
+userRouter.post('/login', loginValidator, wrapRequestHandler2(loginController))
 
 /**
  * Description: Register a new person
