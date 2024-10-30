@@ -1,9 +1,14 @@
 import { config } from 'dotenv'
+import { NextFunction } from 'express'
 import { TokenType } from '~/constants/enums'
-import { RegisterReqBody } from '~/models/requests/User.requests'
+import HTTP_STATUS from '~/constants/httpStatus'
+import ERROR_CODES_MESSAGE from '~/constants/messages'
+import { LoginRequestBody, RegisterReqBody } from '~/models/requests/User.requests'
+import RefreshToken from '~/models/schemas/RefreshToken.schema'
 import User from '~/models/schemas/User.schema'
 import databaseService from '~/services/database.services'
 import hashPassword from '~/utils/crypto'
+import { ErrorWithStatus } from '~/utils/errors'
 import { signToken } from '~/utils/jwt'
 config()
 class UserServices {
@@ -37,15 +42,29 @@ class UserServices {
     return Promise.all([this.signAccessToken(user_id), this.signRefreshToken(user_id)])
   }
 
-  async login(info: any) {
-    const { email, password } = info
-    if (email !== 'phuc01112002@gmail.com' || password !== '123123') {
-      return {
-        message: 'Email or password is incorrect'
-      }
+  async login(payload: LoginRequestBody) {
+    const { email, password } = payload
+    const user = await databaseService.users.findOne({ email, password: hashPassword(password) })
+    if (!user) {
+      throw new ErrorWithStatus({
+        message: ERROR_CODES_MESSAGE.INVALID_CREDENTIALS,
+        status: HTTP_STATUS.UNAUTHORIZED
+      })
     }
+    const { _id } = user
+    const [access_token, refresh_token] = await this.signAccessAndRefreshToken(_id.toString())
+    await databaseService.refreshToken.insertOne(
+      new RefreshToken({
+        user_id: _id,
+        token: refresh_token
+      })
+    )
     return {
-      message: 'Login Success!!!'
+      message: ERROR_CODES_MESSAGE.LOGIN_SUCCESS,
+      data: {
+        access_token,
+        refresh_token
+      }
     }
   }
 
@@ -61,11 +80,11 @@ class UserServices {
     const user_id = result.insertedId.toString()
     const [access_token, refresh_token] = await this.signAccessAndRefreshToken(user_id)
     return {
+      message: ERROR_CODES_MESSAGE.REGISTER_SUCCESS,
       data: {
         access_token,
         refresh_token
-      },
-      message: 'Register successfully'
+      }
     }
   }
 
