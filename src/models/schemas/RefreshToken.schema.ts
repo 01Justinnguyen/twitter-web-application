@@ -10,7 +10,7 @@ interface RefreshTokenType {
 export default class RefreshToken {
   _id?: ObjectId
   token: string
-  created_at: Date
+  created_at?: Date
   user_id: ObjectId
   constructor(refreshToken: RefreshTokenType) {
     this._id = refreshToken._id
