@@ -1,46 +1,58 @@
+import { config } from 'dotenv'
 import { checkSchema } from 'express-validator'
+import HTTP_STATUS from '~/constants/httpStatus'
 import ERROR_CODES_MESSAGE from '~/constants/messages'
+import databaseService from '~/services/database.services'
 import userServices from '~/services/users.services'
+import { ErrorWithStatus } from '~/utils/errors'
+import { verifyToken } from '~/utils/jwt'
 import { validate } from '~/utils/validation'
+import { Request } from 'express'
+import { JsonWebTokenError } from 'jsonwebtoken'
+
+config()
 
 export const loginValidator = validate(
-  checkSchema({
-    email: {
-      notEmpty: {
-        errorMessage: ERROR_CODES_MESSAGE.MISSING_EMAIL_ERROR
+  checkSchema(
+    {
+      email: {
+        notEmpty: {
+          errorMessage: ERROR_CODES_MESSAGE.MISSING_EMAIL_ERROR
+        },
+        isEmail: {
+          errorMessage: ERROR_CODES_MESSAGE.INVALID_EMAIL_FORMAT
+        },
+        trim: true
       },
-      isEmail: {
-        errorMessage: ERROR_CODES_MESSAGE.INVALID_EMAIL_FORMAT
-      },
-      trim: true
+      password: {
+        notEmpty: {
+          errorMessage: ERROR_CODES_MESSAGE.MISSING_PASSWORD_ERROR
+        },
+        isString: {
+          errorMessage: ERROR_CODES_MESSAGE.PASSWORD_MUST_BE_STRING
+        },
+        isLength: {
+          options: {
+            min: 6,
+            max: 50
+          },
+          errorMessage: ERROR_CODES_MESSAGE.PASSWORD_LENGTH_ERROR
+        },
+        isStrongPassword: {
+          options: {
+            minLength: 6,
+            minLowercase: 1,
+            minNumbers: 1,
+            minSymbols: 1,
+            minUppercase: 1
+          },
+          errorMessage: ERROR_CODES_MESSAGE.PASSWORD_STRONG_ERROR
+        },
+        trim: true
+      }
     },
-    password: {
-      notEmpty: {
-        errorMessage: ERROR_CODES_MESSAGE.MISSING_PASSWORD_ERROR
-      },
-      isString: {
-        errorMessage: ERROR_CODES_MESSAGE.PASSWORD_MUST_BE_STRING
-      },
-      isLength: {
-        options: {
-          min: 6,
-          max: 50
-        },
-        errorMessage: ERROR_CODES_MESSAGE.PASSWORD_LENGTH_ERROR
-      },
-      isStrongPassword: {
-        options: {
-          minLength: 6,
-          minLowercase: 1,
-          minNumbers: 1,
-          minSymbols: 1,
-          minUppercase: 1
-        },
-        errorMessage: ERROR_CODES_MESSAGE.PASSWORD_STRONG_ERROR
-      },
-      trim: true
-    }
-  })
+    ['body']
+  )
 )
 
 export const registerValidator = validate(
@@ -147,6 +159,82 @@ export const registerValidator = validate(
             strictSeparator: true
           },
           errorMessage: ERROR_CODES_MESSAGE.INVALID_DATE_OF_BIRTH_FORMAT
+        }
+      }
+    },
+    ['body']
+  )
+)
+
+export const accessTokenValidator = validate(
+  checkSchema(
+    {
+      Authorization: {
+        custom: {
+          options: async (value: string, { req }) => {
+            if (!value) {
+              throw new ErrorWithStatus({
+                message: ERROR_CODES_MESSAGE.TOKEN_NOT_FOUND,
+                status: HTTP_STATUS.UNAUTHORIZED
+              })
+            }
+            if (typeof value !== 'string') {
+              throw new ErrorWithStatus({
+                message: ERROR_CODES_MESSAGE.INVALID_REFRESH_TOKEN,
+                status: HTTP_STATUS.UNAUTHORIZED
+              })
+            }
+            const access_token = value.split(' ')[1]
+
+            const decoded_authorization = await verifyToken({
+              token: access_token,
+              secretOrPublicKey: process.env.ACCESS_TOKEN_SECRET_KEY as string
+            })
+            ;(req as Request).decoded_authorization = decoded_authorization
+            return true
+          }
+        }
+      }
+    },
+    ['headers']
+  )
+)
+
+export const refreshTokenValidator = validate(
+  checkSchema(
+    {
+      refresh_token: {
+        custom: {
+          options: async (value: string, { req }) => {
+            if (!value) {
+              throw new ErrorWithStatus({
+                message: ERROR_CODES_MESSAGE.TOKEN_NOT_FOUND,
+                status: HTTP_STATUS.UNAUTHORIZED
+              })
+            }
+            if (typeof value !== 'string') {
+              throw new ErrorWithStatus({
+                message: ERROR_CODES_MESSAGE.INVALID_REFRESH_TOKEN,
+                status: HTTP_STATUS.UNAUTHORIZED
+              })
+            }
+            const [decoded_refreshToken, isTokenExists] = await Promise.all([
+              verifyToken({
+                token: value,
+                secretOrPublicKey: process.env.REFRESH_TOKEN_SECRET_KEY as string
+              }),
+              databaseService.refreshTokens.findOne({ token: value })
+            ])
+            if (!isTokenExists) {
+              throw new ErrorWithStatus({
+                message: ERROR_CODES_MESSAGE.TOKEN_NOT_FOUND,
+                status: HTTP_STATUS.UNAUTHORIZED
+              })
+            }
+            ;(req as Request).decoded_refreshToken = decoded_refreshToken
+
+            return true
+          }
         }
       }
     },

@@ -1,6 +1,7 @@
 const ERROR_CODES_MESSAGE = {
   // Authentication Notification
   LOGIN_SUCCESS: 'Login successful',
+  LOGOUT_SUCCESS: 'Logout successful',
   REGISTER_SUCCESS: 'Registration successful',
   LOGIN_FAILED: 'Login failed',
   INVALID_CREDENTIALS: 'Invalid email or password',
@@ -22,7 +23,7 @@ const ERROR_CODES_MESSAGE = {
   TIMEOUT_ERROR: 'Request timed out',
   BAD_REQUEST: 'Bad request',
   CONFLICT_ERROR: 'Conflict error',
-  TOO_MANY_REQUESTS: 'Too many requests',
+  TOO_MANY_REQUESTS: 'Too many requests, please try again later',
   SERVICE_UNAVAILABLE: 'Service unavailable',
   DATABASE_ERROR: 'Database error',
   INVALID_INPUT: 'Invalid input',
@@ -51,7 +52,27 @@ const ERROR_CODES_MESSAGE = {
   NAME_MUST_BE_STRING: 'Name must be a string',
   CONFIRM_PASSWORD_MUST_BE_STRING: 'Confirm password must be a string',
   PASSWORD_MUST_BE_STRING: 'Password must be a string',
-  INVALID_DATE_OF_BIRTH_FORMAT: 'Date of birth must be in a valid format'
+  INVALID_DATE_OF_BIRTH_FORMAT: 'Date of birth must be in a valid format',
+  // Entity errors
+
+  // Unauthorized errors
+  UNAUTHORIZED_ERRORS: 'Unauthorized errors',
+  ACCESS_TOKEN_EXPIRED: 'Access token has expired',
+  INVALID_ACCESS_TOKEN: 'Invalid access token',
+  REFRESH_TOKEN_EXPIRED: 'Refresh token has expired',
+  INVALID_REFRESH_TOKEN: 'Invalid refresh token',
+  TOKEN_NOT_FOUND: 'Token does not exist in the database',
+  TOKEN_REVOKED: 'Token has been revoked',
+  TOKEN_TAMPERED: 'Token has been tampered with',
+  TOKEN_MISSING: 'Authorization token is missing',
+  UNAUTHORIZED_SCOPE: 'Unauthorized scope for this action',
+  TOKEN_AUDIENCE_MISMATCH: 'Token audience mismatch',
+  UNAUTHORIZED_USER: 'User is not authorized to access this resource',
+  UNAUTHORIZED_ROLE: 'User does not have the required role to perform this action',
+  PERMISSION_DENIED: 'Permission denied for the requested resource',
+  FORBIDDEN_ACCESS: 'Access to this resource is forbidden',
+  SESSION_EXPIRED: 'User session has expired, please log in again',
+  MFA_REQUIRED: 'Multi-factor authentication is required for this action'
 } as const
 
 export default ERROR_CODES_MESSAGE
