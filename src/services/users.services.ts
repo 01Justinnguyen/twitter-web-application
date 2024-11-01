@@ -1,7 +1,6 @@
 import { config } from 'dotenv'
-import { NextFunction } from 'express'
 import { ObjectId } from 'mongodb'
-import { TokenType } from '~/constants/enums'
+import { TokenType, UserVerifyStatus } from '~/constants/enums'
 import HTTP_STATUS from '~/constants/httpStatus'
 import ERROR_CODES_MESSAGE from '~/constants/messages'
 import { LoginRequestBody, RegisterReqBody } from '~/models/requests/User.requests'
@@ -35,6 +34,19 @@ class UserServices {
       privateKey: process.env.REFRESH_TOKEN_SECRET_KEY as string,
       options: {
         expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN
+      }
+    })
+  }
+
+  private signEmailVerifyToken(user_id: string) {
+    return signToken({
+      payload: {
+        user_id,
+        token_type: TokenType.EmailVerifyToken
+      },
+      privateKey: process.env.EMAIL_VERIFY_TOKEN_SECRET_KEY as string,
+      options: {
+        expiresIn: process.env.EMAIL_VERIFY_TOKEN_EXPIRES_IN
       }
     })
   }
@@ -74,16 +86,19 @@ class UserServices {
   }
 
   async register(payload: RegisterReqBody) {
-    const result = await databaseService.users.insertOne(
+    const user_id = new ObjectId()
+    const email_verify_token = await this.signEmailVerifyToken(user_id.toString())
+    await databaseService.users.insertOne(
       new User({
         ...payload,
+        _id: user_id,
         date_of_birth: new Date(payload.date_of_birth),
+        email_verify_token,
         password: hashPassword(payload.password)
       })
     )
 
-    const user_id = result.insertedId.toString()
-    const [access_token, refresh_token] = await this.signAccessAndRefreshToken(user_id)
+    const [access_token, refresh_token] = await this.signAccessAndRefreshToken(user_id.toString())
     await this.storeRefreshToken({ user_id: new ObjectId(user_id), token: refresh_token })
 
     return {
@@ -99,6 +114,45 @@ class UserServices {
     await databaseService.refreshTokens.deleteOne({ token: refresh_token })
     return {
       message: ERROR_CODES_MESSAGE.LOGOUT_SUCCESS
+    }
+  }
+
+  async verifyEmail(user_id: string) {
+    const [token] = await Promise.all([
+      this.signAccessAndRefreshToken(user_id.toString()),
+      await databaseService.users.updateOne(
+        {
+          _id: new ObjectId(user_id)
+        },
+        // Cách 1: Update time theo MongoDB cập nhật giá trị
+        // {
+        //   $set: {
+        //     email_verify_token: '',
+        //     verify: UserVerifyStatus.Verified
+        //   },
+        //   $currentDate: {
+        //     updated_at: true
+        //   }
+        // },
+        // Cách 2: Update time theo MongoDB cập nhật giá trị
+        [
+          {
+            $set: {
+              email_verify_token: '',
+              verify: UserVerifyStatus.Verified,
+              updated_at: '$$NOW'
+            }
+          }
+        ]
+      )
+    ])
+    const [access_token, refresh_token] = token
+    return {
+      message: ERROR_CODES_MESSAGE.EMAIL_VERIFY_SUCCESS,
+      data: {
+        access_token,
+        refresh_token
+      }
     }
   }
 
