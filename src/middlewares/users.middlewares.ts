@@ -8,7 +8,6 @@ import { ErrorWithStatus } from '~/utils/errors'
 import { verifyToken } from '~/utils/jwt'
 import { validate } from '~/utils/validation'
 import { Request } from 'express'
-import { JsonWebTokenError } from 'jsonwebtoken'
 
 config()
 
@@ -233,6 +232,39 @@ export const refreshTokenValidator = validate(
             }
             ;(req as Request).decoded_refreshToken = decoded_refreshToken
 
+            return true
+          }
+        }
+      }
+    },
+    ['body']
+  )
+)
+
+export const emailVerifyTokenValidator = validate(
+  checkSchema(
+    {
+      email_verify_token: {
+        custom: {
+          options: async (value: string, { req }) => {
+            if (!value) {
+              throw new ErrorWithStatus({
+                message: ERROR_CODES_MESSAGE.TOKEN_NOT_FOUND,
+                status: HTTP_STATUS.UNAUTHORIZED
+              })
+            }
+            if (typeof value !== 'string') {
+              throw new ErrorWithStatus({
+                message: ERROR_CODES_MESSAGE.INVALID_EMAIL_VERIFY_TOKEN,
+                status: HTTP_STATUS.UNAUTHORIZED
+              })
+            }
+
+            const decoded_email_verify_token = await verifyToken({
+              token: value,
+              secretOrPublicKey: process.env.EMAIL_VERIFY_TOKEN_SECRET_KEY as string
+            })
+            ;(req as Request).decoded_email_verify_token = decoded_email_verify_token
             return true
           }
         }
