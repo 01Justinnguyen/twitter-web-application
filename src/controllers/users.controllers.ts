@@ -1,8 +1,16 @@
 import { NextFunction, Request, Response } from 'express'
 import userServices from '~/services/users.services'
 import { ParamsDictionary } from 'express-serve-static-core'
-import { LoginRequestBody, LogoutReqBody, RegisterReqBody } from '~/models/requests/User.requests'
+import {
+  EmailVerifyTokenReqBody,
+  LoginRequestBody,
+  LogoutReqBody,
+  RegisterReqBody,
+  TokenPayload
+} from '~/models/requests/User.requests'
 import databaseService from '~/services/database.services'
+import { ObjectId } from 'mongodb'
+import ERROR_CODES_MESSAGE from '~/constants/messages'
 
 export const loginController = async (req: Request<ParamsDictionary, any, LoginRequestBody>, res: Response) => {
   const result = await userServices.login(req.body)
@@ -25,4 +33,35 @@ export const logoutController = async (
 ) => {
   const result = await userServices.logout(req.body.refresh_token)
   res.json(result)
+}
+
+export const emailVerifyValidatorController = async (
+  req: Request<ParamsDictionary, any, EmailVerifyTokenReqBody>,
+  res: Response,
+  next: NextFunction
+) => {
+  const { user_id } = req.decoded_email_verify_token as TokenPayload
+  const user = await databaseService.users.findOne({
+    _id: new ObjectId(user_id)
+  })
+  // Nếu không tìm thấy user thì báo lõi
+  if (!user) {
+    res.status(404).json({
+      message: ERROR_CODES_MESSAGE.USER_NOT_FOUND
+    })
+    return
+  }
+  // Đã verify rồi thì không báo lỗi mà sẽ trả về status OK
+  if (user.email_verify_token === '') {
+    res.json({
+      message: ERROR_CODES_MESSAGE.EMAIL_ALREADY_VERIFIED
+    })
+    return
+  }
+
+  // Nếu email chưa verify thì thực hiện verify
+  const result = await userServices.verifyEmail(user_id)
+  res.json(result)
+
+  return
 }

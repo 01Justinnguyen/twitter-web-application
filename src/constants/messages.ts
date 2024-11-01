@@ -1,5 +1,6 @@
 const ERROR_CODES_MESSAGE = {
   // Authentication Notification
+  USER_NOT_FOUND: 'User not found',
   LOGIN_SUCCESS: 'Login successful',
   LOGOUT_SUCCESS: 'Logout successful',
   REGISTER_SUCCESS: 'Registration successful',
@@ -61,6 +62,7 @@ const ERROR_CODES_MESSAGE = {
   INVALID_ACCESS_TOKEN: 'Invalid access token',
   REFRESH_TOKEN_EXPIRED: 'Refresh token has expired',
   INVALID_REFRESH_TOKEN: 'Invalid refresh token',
+  INVALID_EMAIL_VERIFY_TOKEN: 'Invalid refresh token',
   TOKEN_NOT_FOUND: 'Token does not exist in the database',
   TOKEN_REVOKED: 'Token has been revoked',
   TOKEN_TAMPERED: 'Token has been tampered with',
@@ -72,7 +74,20 @@ const ERROR_CODES_MESSAGE = {
   PERMISSION_DENIED: 'Permission denied for the requested resource',
   FORBIDDEN_ACCESS: 'Access to this resource is forbidden',
   SESSION_EXPIRED: 'User session has expired, please log in again',
-  MFA_REQUIRED: 'Multi-factor authentication is required for this action'
+  MFA_REQUIRED: 'Multi-factor authentication is required for this action',
+  // Unauthorized errors
+
+  // Lỗi liên quan đến email verification
+  EMAIL_VERIFY_SUCCESS: 'Email verify success',
+  EMAIL_NOT_VERIFIED: 'Email address has not been verified',
+  EMAIL_VERIFICATION_EXPIRED: 'Email verification link has expired',
+  INVALID_EMAIL_VERIFICATION_TOKEN: 'Invalid email verification token',
+  EMAIL_ALREADY_VERIFIED: 'Email address has already been verified',
+  EMAIL_VERIFICATION_RESENT: 'Email verification link has been resent',
+  EMAIL_VERIFICATION_REQUIRED: 'Email verification is required to access this resource',
+  EMAIL_VERIFICATION_LIMIT_REACHED: 'Email verification attempt limit has been reached, please try again later',
+  EMAIL_NOT_FOUND: 'No user found with the specified email address'
+  // Lỗi liên quan đến email verification
 } as const
 
 export default ERROR_CODES_MESSAGE
