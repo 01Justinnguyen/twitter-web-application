@@ -11,6 +11,8 @@ import {
 import databaseService from '~/services/database.services'
 import { ObjectId } from 'mongodb'
 import ERROR_CODES_MESSAGE from '~/constants/messages'
+import HTTP_STATUS from '~/constants/httpStatus'
+import { UserVerifyStatus } from '~/constants/enums'
 
 export const loginController = async (req: Request<ParamsDictionary, any, LoginRequestBody>, res: Response) => {
   const result = await userServices.login(req.body)
@@ -35,7 +37,7 @@ export const logoutController = async (
   res.json(result)
 }
 
-export const emailVerifyValidatorController = async (
+export const verifyEmailController = async (
   req: Request<ParamsDictionary, any, EmailVerifyTokenReqBody>,
   res: Response,
   next: NextFunction
@@ -64,4 +66,23 @@ export const emailVerifyValidatorController = async (
   res.json(result)
 
   return
+}
+
+export const resendverifyEmailController = async (req: Request, res: Response, next: NextFunction) => {
+  const { user_id } = req.decoded_authorization as TokenPayload
+  const user = await databaseService.users.findOne({ _id: new ObjectId(user_id) })
+  if (!user) {
+    res.status(HTTP_STATUS.NOT_FOUND).json({
+      message: ERROR_CODES_MESSAGE.USER_NOT_FOUND
+    })
+    return
+  }
+  if (user.verify === UserVerifyStatus.Verified) {
+    res.json({
+      message: ERROR_CODES_MESSAGE.EMAIL_ALREADY_VERIFIED
+    })
+    return
+  }
+  const result = await userServices.resendVerifyEmail(user_id)
+  res.json(result)
 }
