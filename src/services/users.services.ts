@@ -156,6 +156,30 @@ class UserServices {
     }
   }
 
+  async resendVerifyEmail(user_id: string) {
+    // Giả bộ gửi email
+    const email_verify_token = await this.signEmailVerifyToken(user_id)
+    console.log('Gửi lại email verify')
+    // Cập nhật lại giá trị email_verify_token trong document user
+    await databaseService.users.updateOne(
+      {
+        _id: new ObjectId(user_id)
+      },
+      [
+        {
+          $set: {
+            email_verify_token,
+            updated_at: '$$NOW'
+          }
+        }
+      ]
+    )
+
+    return {
+      message: ERROR_CODES_MESSAGE.EMAIL_VERIFICATION_RESENT
+    }
+  }
+
   async checkEmailAlreadyExists(email: string) {
     const result = await databaseService.users.findOne({ email })
     return Boolean(result)
