@@ -119,3 +119,13 @@ export const resetPasswordController = async (
   res.json(result)
   return
 }
+
+export const getProfileController = async (req: Request, res: Response, next: NextFunction) => {
+  const { user_id } = req.decoded_authorization as TokenPayload
+  const user = await userServices.getMeProfile(user_id)
+
+  res.json({
+    message: ERROR_CODES_MESSAGE.GET_ME_PROFILE_SUCCESS,
+    data: user
+  })
+}
