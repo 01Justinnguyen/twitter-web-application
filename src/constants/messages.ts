@@ -4,6 +4,7 @@ const ERROR_CODES_MESSAGE = {
   LOGIN_SUCCESS: 'Login successful',
   LOGOUT_SUCCESS: 'Logout successful',
   REGISTER_SUCCESS: 'Registration successful',
+  RESET_PASSWORD_SUCCESS: 'Reset password success',
   LOGIN_FAILED: 'Login failed',
   INVALID_CREDENTIALS: 'Invalid email or password',
   ACCOUNT_LOCKED: 'Account is locked. Please contact support',
@@ -13,6 +14,7 @@ const ERROR_CODES_MESSAGE = {
   WEAK_PASSWORD: 'Password does not meet strength requirements',
   INVALID_EMAIL_FORMAT: 'Email must be in a valid format',
   MISSING_REQUIRED_FIELDS: 'Please fill in all required fields',
+  CHECK_EMAIL_TO_RESET_PASSWORD: 'Check email to reset password',
   // Authentication Notification
 
   // System errors
@@ -62,11 +64,13 @@ const ERROR_CODES_MESSAGE = {
   INVALID_ACCESS_TOKEN: 'Invalid access token',
   REFRESH_TOKEN_EXPIRED: 'Refresh token has expired',
   INVALID_REFRESH_TOKEN: 'Invalid refresh token',
+  INVALID_FORGOT_PASSWORD_TOKEN: 'Invalid refresh token',
   INVALID_EMAIL_VERIFY_TOKEN: 'Invalid refresh token',
   TOKEN_NOT_FOUND: 'Token does not exist in the database',
   TOKEN_REVOKED: 'Token has been revoked',
   TOKEN_TAMPERED: 'Token has been tampered with',
   TOKEN_MISSING: 'Authorization token is missing',
+  VERIFY_FORGOT_PASSWORD_TOKEN_SUCCESS: 'Verify forgot password token success',
   UNAUTHORIZED_SCOPE: 'Unauthorized scope for this action',
   TOKEN_AUDIENCE_MISMATCH: 'Token audience mismatch',
   UNAUTHORIZED_USER: 'User is not authorized to access this resource',
