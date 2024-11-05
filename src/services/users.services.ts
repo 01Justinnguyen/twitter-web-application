@@ -51,6 +51,19 @@ class UserServices {
     })
   }
 
+  private signForgotPasswordToken(user_id: string) {
+    return signToken({
+      payload: {
+        user_id,
+        token_type: TokenType.ForgotPasswordToken
+      },
+      privateKey: process.env.FORGOT_PASSWORD_TOKEN_SECRET_KEY as string,
+      options: {
+        expiresIn: process.env.FORGOT_TOKEN_EXPIRES_IN
+      }
+    })
+  }
+
   private signAccessAndRefreshToken(user_id: string) {
     return Promise.all([this.signAccessToken(user_id), this.signRefreshToken(user_id)])
   }
@@ -180,9 +193,61 @@ class UserServices {
     }
   }
 
+  async forgotPassword(user_id: string) {
+    const forgotPasswordToken = await this.signForgotPasswordToken(user_id)
+    await databaseService.users.updateOne(
+      {
+        _id: new ObjectId(user_id)
+      },
+      [
+        {
+          $set: {
+            forgot_password_token: forgotPasswordToken,
+            updated_at: '$$NOW'
+          }
+        }
+      ]
+    )
+
+    // Gửi email kèm đường link đến email người dùng: https://twitter.com/forgot-password?token=token
+    console.log('forgot-password-token', forgotPasswordToken)
+
+    return {
+      message: ERROR_CODES_MESSAGE.CHECK_EMAIL_TO_RESET_PASSWORD
+    }
+  }
+
+  async resetPassword({ user_id, password }: { user_id: string; password: string }) {
+    await databaseService.users.updateOne(
+      {
+        _id: new ObjectId(user_id)
+      },
+      [
+        {
+          $set: {
+            password: hashPassword(password),
+            forgot_password_token: '',
+            updated_at: '$$NOW'
+          }
+        }
+      ]
+    )
+
+    return {
+      message: ERROR_CODES_MESSAGE.RESET_PASSWORD_SUCCESS
+    }
+  }
+
   async checkEmailAlreadyExists(email: string) {
     const result = await databaseService.users.findOne({ email })
     return Boolean(result)
+  }
+
+  async findUserAlreadyExists({ email }: { email: string }) {
+    const user = await databaseService.users.findOne({
+      email
+    })
+    return user
   }
 }
 
