@@ -238,6 +238,25 @@ class UserServices {
     }
   }
 
+  async getMeProfile(user_id: string) {
+    const meProfile = await databaseService.users.findOne(
+      {
+        _id: new ObjectId(user_id)
+      },
+      {
+        projection: {
+          password: 0,
+          email_verify_token: 0,
+          forgot_password_token: 0,
+          updated_at: 0,
+          created_at: 0
+        }
+      }
+    )
+
+    return meProfile
+  }
+
   async checkEmailAlreadyExists(email: string) {
     const result = await databaseService.users.findOne({ email })
     return Boolean(result)
